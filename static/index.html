@@ -1,16 +1,124 @@
 <!DOCTYPE html><html lang="fa" dir="rtl"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#17212b">
-<link rel="manifest" href="/manifest.json"><link rel="icon" href="/icon-192.png"><link rel="apple-touch-icon" href="/icon-192.png">
-<title>پیکو</title>
+<meta name="theme-color" content="#07080d">
+<link rel="manifest" href="/manifest.json"><link rel="icon" href="/icon-192.png">
+<title>Picko</title>
 <style>
+:root{color-scheme:dark;--g:rgba(255,255,255,.06);--l:rgba(255,255,255,.12);--t:#f3f5fa;--d:#8b93a7;--a:linear-gradient(135deg,#2aabee,#7b6cff)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;margin:0}
-body{background:#17212b;color:#f5f5f5;font-family:sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
-img{width:110px;height:110px;border-radius:26px}
-h1{margin:0}#st{color:#7f91a4;font-size:15px}.ok{color:#6ee7a8!important}
+body{background:#07080d;color:var(--t);font-family:'Vazirmatn',Tahoma,system-ui,sans-serif;overflow:hidden}
+.orb{position:fixed;border-radius:50%;filter:blur(80px);opacity:.5;pointer-events:none}
+.o1{width:280px;height:280px;background:#1d7bff;top:-90px;right:-80px}.o2{width:260px;height:260px;background:#7b3cff;bottom:-80px;left:-90px}
+#app{position:relative;height:100%;max-width:480px;margin:0 auto}
+.scr{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;overflow-y:auto;padding:28px 18px}
+.scr.on{display:flex}#splash{justify-content:center}
+.logo{width:92px;height:92px;border-radius:24px;box-shadow:0 10px 40px rgba(42,171,238,.35)}
+h1{margin:12px 0 2px;font-size:30px;letter-spacing:1px}
+.sub{color:var(--d);margin:0 0 20px}
+.glass,.card{background:var(--g);border:1px solid var(--l);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}
+.card{width:100%;border-radius:24px;padding:18px}
+.seg{display:flex;background:rgba(0,0,0,.35);border-radius:14px;padding:4px;margin-bottom:14px}
+.seg button{flex:1;border:0;background:transparent;color:var(--d);font:inherit;padding:10px;border-radius:11px;cursor:pointer}
+.seg .on{background:var(--g);color:var(--t);box-shadow:inset 0 0 0 1px var(--l)}
+.fld{margin-bottom:12px}.fld label{display:block;font-size:13px;color:var(--d);margin-bottom:6px}
+input{width:100%;background:rgba(0,0,0,.35);border:1px solid var(--l);border-radius:14px;color:var(--t);font:inherit;font-size:16px;padding:12px 14px;outline:0}
+input:focus{border-color:#2aabee}
+.pw{position:relative}.pw button{position:absolute;left:8px;top:50%;transform:translateY(-50%);border:0;background:none;font-size:18px;cursor:pointer}
+.er{color:#ff7b8a;font-size:14px;min-height:20px;margin-bottom:8px}
+.btn{width:100%;border:0;border-radius:14px;padding:14px;background:var(--a);color:#fff;font:inherit;font-weight:600;font-size:16px;cursor:pointer}
+.btn:disabled{opacity:.6}.btn.out{background:transparent;border:1px solid rgba(255,100,120,.5);color:#ff8a98;margin-top:10px}
+#main{padding:0;align-items:stretch;overflow:hidden}
+header{display:flex;align-items:center;gap:12px;margin:10px;padding:12px 14px;border-radius:20px}
+.av{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-weight:600;font-size:19px;color:#fff;flex:none}
+.av.xl{width:96px;height:96px;font-size:40px;margin:6px auto 14px}
+.nm{font-weight:600}.un{color:var(--d);font-size:13px;direction:ltr;text-align:right}
+.pgs{flex:1;overflow-y:auto;padding:0 10px}
+.pg{display:none}.pg.on{display:block}
+.empty{text-align:center;color:var(--d);margin-top:70px;line-height:2}.empty b{display:block;font-size:46px}
+nav{display:flex;margin:10px;border-radius:20px;padding:6px}
+nav button{flex:1;border:0;background:transparent;color:var(--d);font:inherit;padding:10px;border-radius:14px;cursor:pointer}
+nav .on{background:var(--g);color:var(--t)}
+#toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.85);padding:8px 18px;border-radius:18px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none}
+#toast.on{opacity:1}
 </style></head><body>
-<img src="/icon-192.png" alt=""><h1>پیکو</h1><div id="st">در حال اتصال به سرور…</div>
+<div class="orb o1"></div><div class="orb o2"></div>
+<main id="app">
+ <section id="splash" class="scr on"><img class="logo" src="/icon-192.png" alt=""><h1>Picko</h1></section>
+ <section id="auth" class="scr">
+  <img class="logo" src="/icon-192.png" alt=""><h1>Picko</h1><p class="sub">پیام‌رسان جدید</p>
+  <div class="card">
+   <div class="seg"><button id="tl" class="on">ورود</button><button id="ts">ساخت حساب</button></div>
+   <div class="fld" id="fn" style="display:none"><label>نام نمایشی</label><input id="name" maxlength="30" autocomplete="off"></div>
+   <div class="fld"><label>نام کاربری (انگلیسی)</label><input id="un" dir="ltr" autocapitalize="none" autocomplete="username" placeholder="example_user"></div>
+   <div class="fld"><label>رمز عبور</label><div class="pw"><input id="pw" type="password" dir="ltr" autocomplete="current-password"><button type="button" id="eye">👁</button></div></div>
+   <div class="er" id="err"></div>
+   <button class="btn" id="go">ورود</button>
+  </div>
+ </section>
+ <section id="main" class="scr">
+  <header class="glass"><div class="av" id="hav"></div><div><div class="nm" id="hn"></div><div class="un" id="hu"></div></div></header>
+  <div class="pgs">
+   <div class="pg on" id="pg1"><div class="empty"><b>💬</b>هنوز گفتگویی نداری<br>به‌زودی می‌تونی با دوستات چت کنی</div></div>
+   <div class="pg" id="pg2">
+    <div class="av xl" id="pav"></div>
+    <div class="card">
+     <div class="fld"><label>نام نمایشی</label><input id="pn" maxlength="30"></div>
+     <div class="fld"><label>درباره من</label><input id="pb" maxlength="120"></div>
+     <div class="er" id="perr"></div>
+     <button class="btn" id="save">ذخیره</button>
+     <button class="btn out" id="out">خروج از حساب</button>
+    </div>
+    <p class="sub" id="since" style="text-align:center;margin-top:14px"></p>
+   </div>
+  </div>
+  <nav class="glass"><button id="n1" class="on">💬 گفتگوها</button><button id="n2">👤 پروفایل</button></nav>
+ </section>
+</main>
+<div id="toast"></div>
 <script>
-if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js');
-fetch('/ping').then(r=>r.text()).then(t=>{const e=document.getElementById('st');e.textContent='سرور وصله ✓';e.className='ok'}).catch(()=>{document.getElementById('st').textContent='سرور خاموشه'});
+const $=s=>document.querySelector(s);
+const COL=['#e17076','#faa774','#a695e7','#7bc862','#6ec9cb','#65aadd','#ee7aae'];
+let mode='login',tok='',me=null;
+try{tok=localStorage.getItem('pk_t')||''}catch(e){}
+function store(t){tok=t;try{t?localStorage.setItem('pk_t',t):localStorage.removeItem('pk_t')}catch(e){}}
+function show(id){document.querySelectorAll('.scr').forEach(s=>s.classList.toggle('on',s.id===id))}
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');setTimeout(()=>e.classList.remove('on'),1600)}
+function setAv(el,n){el.textContent=[...n][0]||'?';el.style.background=COL[[...n].reduce((a,c)=>a+c.charCodeAt(0),0)%COL.length]}
+async function api(path,body,method='POST'){
+  let r;
+  try{r=await fetch(path,{method,headers:{'Content-Type':'application/json',Authorization:'Bearer '+tok},body:method==='GET'?undefined:JSON.stringify(body||{})})}
+  catch(e){throw new Error('ارتباط با سرور برقرار نشد. مطمئن شو Termux روشنه.')}
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok)throw Object.assign(new Error(j.error||'خطا'),{code:r.status});
+  return j}
+function setMode(m){mode=m;$('#tl').classList.toggle('on',m==='login');$('#ts').classList.toggle('on',m==='signup');
+  $('#fn').style.display=m==='signup'?'block':'none';$('#go').textContent=m==='signup'?'ساخت حساب':'ورود';
+  $('#pw').autocomplete=m==='signup'?'new-password':'current-password';$('#err').textContent=''}
+$('#tl').onclick=()=>setMode('login');$('#ts').onclick=()=>setMode('signup');
+$('#eye').onclick=()=>{const p=$('#pw');p.type=p.type==='password'?'text':'password'};
+function enter(u){me=u;setAv($('#hav'),u.name);setAv($('#pav'),u.name);$('#hn').textContent=u.name;$('#hu').textContent='@'+u.username;
+  $('#pn').value=u.name;$('#pb').value=u.bio||'';
+  $('#since').textContent='عضو از '+new Date(u.created*1000).toLocaleDateString('fa-IR');page(1);show('main')}
+function page(n){[1,2].forEach(i=>{$('#pg'+i).classList.toggle('on',i===n);$('#n'+i).classList.toggle('on',i===n)})}
+$('#n1').onclick=()=>page(1);$('#n2').onclick=()=>page(2);
+$('#go').onclick=async()=>{
+  const un=$('#un').value.trim().toLowerCase(),pw=$('#pw').value,name=$('#name').value.trim(),E=$('#err');E.textContent='';
+  if(!/^[a-z0-9_]{3,20}$/.test(un)){E.textContent='نام کاربری باید ۳ تا ۲۰ حرف انگلیسی، عدد یا _ باشد';return}
+  if(mode==='signup'){if(!name){E.textContent='نام نمایشی را وارد کن';return}if(pw.length<6){E.textContent='رمز عبور حداقل ۶ کاراکتر باشد';return}}
+  else if(!pw){E.textContent='رمز عبور را وارد کن';return}
+  const b=$('#go');b.disabled=true;
+  try{const j=await api(mode==='signup'?'/api/register':'/api/login',{username:un,password:pw,name});store(j.token);$('#pw').value='';enter(j.user)}
+  catch(e){E.textContent=e.message}
+  b.disabled=false};
+$('#save').onclick=async()=>{const E=$('#perr');E.textContent='';
+  try{const j=await api('/api/me',{name:$('#pn').value,bio:$('#pb').value});enter(j.user);page(2);toast('ذخیره شد ✓')}
+  catch(e){E.textContent=e.message}};
+$('#out').onclick=async()=>{try{await api('/api/logout')}catch(e){}store('');me=null;$('#pw').value='';setMode('login');show('auth')};
+(async()=>{
+  if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js');
+  if(!tok){show('auth');return}
+  try{enter((await api('/api/me',null,'GET')).user)}
+  catch(e){if(e.code===401)store('');show('auth');if(e.code!==401)$('#err').textContent=e.message}
+})();
 </script></body></html>
