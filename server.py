@@ -119,4 +119,5 @@ def logout():
             save(d)
     return jsonify(ok=1)
 
+import saved; saved.init(app, load, save, auth, err, LOCK)
 app.run(host='0.0.0.0', port=5000)
