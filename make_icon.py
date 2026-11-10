@@ -1,47 +1,54 @@
-import zlib, struct
-TAIL=[(0.34,0.64),(0.28,0.80),(0.50,0.67)]
-def inside(x,y,p):
-    c=False; j=len(p)-1
-    for i in range(len(p)):
-        xi,yi=p[i]; xj,yj=p[j]
-        if (yi>y)!=(yj>y) and x<(xj-xi)*(y-yi)/(yj-yi)+xi: c=not c
-        j=i
-    return c
-def rr(x,y,cx,cy,hw,hh,r):
-    dx=max(abs(x-cx)-(hw-r),0); dy=max(abs(y-cy)-(hh-r),0)
-    return dx*dx+dy*dy<=r*r
-def letter(x,y):
-    if y>=0.37:
-        e=((x-0.5)/0.16)**2+((y-0.37)/0.11)**2
-        i=((x-0.5)/0.11)**2+((y-0.37)/0.06)**2
-        if e<=1 and i>=1: return True
-    for cx,cy in ((0.45,0.515),(0.55,0.515),(0.5,0.565)):
-        if (x-cx)**2+(y-cy)**2<=0.028**2: return True
-    return False
-def render(s):
-    rows=[]
-    for py in range(s):
-        r=bytearray()
-        for px in range(s):
-            t=(px+py)/(2*s)
-            bg=(45-15*t,170-30*t,240-30*t)
-            w=l=0
-            if 0.18<px/s<0.82 and 0.21<py/s<0.82:
-                for dx in (0.25,0.75):
-                    for dy in (0.25,0.75):
-                        x=(px+dx)/s; y=(py+dy)/s
-                        if letter(x,y): l+=1
-                        elif rr(x,y,0.5,0.45,0.30,0.22,0.12) or inside(x,y,TAIL): w+=1
-            b=4-w-l
-            for k in range(3):
-                r.append(int((bg[k]*b+255*w+(36,140,205)[k]*l)/4))
-        rows.append(r)
+import zlib, struct, math
+CX, CY, ANG = 0.5, 0.52, math.radians(-12)
+IN = [(0.30, 0.34), (0.70, 0.34), (0.50, 0.70)]
+R = 0.085
+def seg(px, py, a, b):
+    ax, ay = a; bx, by = b
+    dx, dy = bx - ax, by - ay
+    t = max(0, min(1, ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy)))
+    return math.hypot(px - ax - t * dx, py - ay - t * dy)
+def tri_dist(px, py):
+    s = []
+    for i in range(3):
+        a, b = IN[i], IN[(i + 1) % 3]
+        s.append((b[0] - a[0]) * (py - a[1]) - (b[1] - a[1]) * (px - a[0]))
+    if all(v >= 0 for v in s) or all(v <= 0 for v in s):
+        return 0.0
+    return min(seg(px, py, IN[i], IN[(i + 1) % 3]) for i in range(3))
+def clamp(v): return 0.0 if v < 0 else 1.0 if v > 1 else v
+def render(n):
+    ca, sa = math.cos(ANG), math.sin(ANG)
+    rows = []
+    for py in range(n):
+        row = bytearray()
+        for px in range(n):
+            x, y = (px + 0.5) / n, (py + 0.5) / n
+            g = max(0.0, 1 - math.hypot(x - 0.5, y - 0.58) / 0.55) ** 2
+            r, gg, b = 10 + 30 * g, 12 + 90 * g, 20 + 200 * g
+            dx, dy = x - CX, y - CY
+            u, v = CX + dx * ca + dy * sa, CY - dx * sa + dy * ca
+            if 0.1 < u < 0.9 and 0.15 < v < 0.9:
+                d = tri_dist(u, v) - R
+                cov = clamp(0.5 - d * n)
+                if cov > 0:
+                    t = clamp((u - 0.2) * 0.9 + (v - 0.25) * 0.9)
+                    pr, pg, pb = 42 + (123 - 42) * t, 171 + (108 - 171) * t, 238 + (255 - 238) * t
+                    h = clamp(1 - (v - 0.26) / 0.16) * 0.28
+                    pr, pg, pb = pr + (255 - pr) * h, pg + (255 - pg) * h, pb + (255 - pb) * h
+                    for cx in (0.43, 0.5, 0.57):
+                        dd = math.hypot(u - cx, v - 0.455) - 0.026
+                        c2 = clamp(0.5 - dd * n)
+                        if c2 > 0:
+                            pr, pg, pb = pr + (255 - pr) * c2, pg + (255 - pg) * c2, pb + (255 - pb) * c2
+                    r, gg, b = r + (pr - r) * cov, gg + (pg - gg) * cov, b + (pb - b) * cov
+            row += bytes((int(r), int(gg), int(b)))
+        rows.append(row)
     return rows
-def save(path,s):
-    raw=b''.join(b'\x00'+bytes(r) for r in render(s))
-    def ch(t,d):
-        return struct.pack('>I',len(d))+t+d+struct.pack('>I',zlib.crc32(t+d)&0xffffffff)
-    open(path,'wb').write(b'\x89PNG\r\n\x1a\n'+ch(b'IHDR',struct.pack('>IIBBBBB',s,s,8,2,0,0,0))+ch(b'IDAT',zlib.compress(raw,9))+ch(b'IEND',b''))
-save('static/icon-192.png',192)
-save('static/icon-512.png',512)
+def save(path, n):
+    raw = b''.join(b'\x00' + bytes(r) for r in render(n))
+    def ch(t, d):
+        return struct.pack('>I', len(d)) + t + d + struct.pack('>I', zlib.crc32(t + d) & 0xffffffff)
+    open(path, 'wb').write(b'\x89PNG\r\n\x1a\n' + ch(b'IHDR', struct.pack('>IIBBBBB', n, n, 8, 2, 0, 0, 0)) + ch(b'IDAT', zlib.compress(raw, 9)) + ch(b'IEND', b''))
+save('static/icon-192.png', 192)
+save('static/icon-512.png', 512)
 print('icons ok')
