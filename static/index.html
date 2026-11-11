@@ -171,6 +171,8 @@ nav .on{background:rgba(255,255,255,.09);color:var(--t)}
  </section>
 </main>
 <div id="dim"></div><div id="sheet"></div><div id="toast"></div>
+<script src="/ludo.js"></script>
+<script src="/extra.js"></script>
 <script>
 const $=s=>document.querySelector(s);
 const ic=n=>'<svg class="ic"><use href="#i-'+n+'"/></svg>';
@@ -213,7 +215,7 @@ $('#go').onclick=async()=>{
 function enter(u){me=u;document.body.classList.add('in');setAv($('#hav'),u.name);setAv($('#pav'),u.name);
   $('#hn').textContent=u.name;$('#hu').textContent='@'+u.username;$('#pn').value=u.name;$('#pb').value=u.bio||'';
   $('#since').textContent='عضو از '+new Date(u.created*1000).toLocaleDateString('fa-IR');
-  page(1);show('main');loadSaved()}
+  page(1);show('main');loadSaved();if(window.Perms)Perms.maybe()}
 function page(n){[1,2].forEach(i=>{$('#pg'+i).classList.toggle('on',i===n);$('#n'+i).classList.toggle('on',i===n)})}
 $('#n1').onclick=()=>page(1);$('#n2').onclick=()=>page(2);
 $('#save').onclick=async()=>{const E=$('#perr');E.textContent='';busy($('#save'),true);
@@ -225,10 +227,11 @@ async function loadSaved(){try{saved=(await api('/api/saved',null,'GET')).items}
 function rowInfo(){const l=saved[saved.length-1];
   $('#rsub').textContent=l?l.text.replace(/\s+/g,' ').slice(0,50):'پیام‌هات رو اینجا ذخیره کن';
   $('#rtime').textContent=l?tm(new Date(l.t*1000)):'';
-  $('#rcnt').style.display=saved.length?'inline-block':'none';$('#rcnt').textContent=saved.length}
+  }
 $('#rsaved').onclick=()=>{show('saved');if(!CapApp)history.pushState({s:1},'');$('#sq').value='';$('#sbar').classList.remove('on');cancelEdit();renderSaved()};
 function closeSaved(){show('main');page(1);rowInfo()}
 function goBack(){
+  if(window.Games&&Games.back())return true;
   if($('#sheet').classList.contains('on')){closeSheet();return true}
   if($('#saved').classList.contains('on')){
     if(editId){cancelEdit();return true}
@@ -283,8 +286,9 @@ $('#dim').onclick=closeSheet;
 /* boot */
 (async()=>{
   if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js');
+  if(window.Games&&!(await Games.alive())){Games.offline();return}
   if(!tok){show('auth');return}
   try{enter((await api('/api/me',null,'GET')).user)}
-  catch(e){if(e.code===401)store('');show('auth');if(e.code!==401)$('#err').textContent=e.message}
+  catch(e){if(!e.code&&window.Games){Games.offline();return}if(e.code===401)store('');show('auth');if(e.code!==401)$('#err').textContent=e.message}
 })();
 </script></body></html>

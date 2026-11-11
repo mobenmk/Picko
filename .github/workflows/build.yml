@@ -34,6 +34,8 @@ jobs:
           done
           M=android/app/src/main/AndroidManifest.xml
           grep -q usesCleartextTraffic $M || sed -i 's/<application/<application android:usesCleartextTraffic="true"/' $M
+      - name: Permissions
+        run: python3 perm.py
       - name: Build
         run: cd android && chmod +x gradlew && ./gradlew assembleDebug
       - uses: softprops/action-gh-release@v2
