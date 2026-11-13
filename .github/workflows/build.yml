@@ -36,6 +36,8 @@ jobs:
           grep -q usesCleartextTraffic $M || sed -i 's/<application/<application android:usesCleartextTraffic="true"/' $M
       - name: Permissions
         run: python3 perm.py
+      - name: Back button
+        run: python3 patchmain.py
       - name: Build
         run: cd android && chmod +x gradlew && ./gradlew assembleDebug
       - uses: softprops/action-gh-release@v2

@@ -173,10 +173,15 @@ nav .on{background:rgba(255,255,255,.09);color:var(--t)}
 <div id="dim"></div><div id="sheet"></div><div id="toast"></div>
 <script src="/ludo.js"></script>
 <script src="/extra.js"></script>
+<script src="/emoji.js"></script>
+<script src="/fix.js"></script>
+<script src="/stick.js"></script>
+<script src="/tabs.js"></script>
+<script src="/nav.js"></script>
 <script>
 const $=s=>document.querySelector(s);
 const ic=n=>'<svg class="ic"><use href="#i-'+n+'"/></svg>';
-const CapApp=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.App;
+const CapApp=null;
 const COL=['#e17076','#faa774','#a695e7','#7bc862','#6ec9cb','#65aadd','#ee7aae'];
 let mode='login',tok='',me=null,saved=[],editId=null;
 try{tok=localStorage.getItem('pk_t')||''}catch(e){}
@@ -208,7 +213,7 @@ $('#go').onclick=async()=>{
   if(mode==='signup'){if(!name){E.textContent='نام نمایشی را وارد کن';return}if(pw.length<6){E.textContent='رمز عبور حداقل ۶ کاراکتر باشد';return}}
   else if(!pw){E.textContent='رمز عبور را وارد کن';return}
   busy($('#go'),true);
-  try{const j=await api(mode==='signup'?'/api/register':'/api/login',{username:un,password:pw,name});store(j.token);$('#pw').value='';enter(j.user)}
+  try{const j=await api(mode==='signup'?'/api/register':'/api/login',{username:un,password:pw,name});store(j.token);$('#pw').value='';window.__newAcct=(mode==='signup');enter(j.user)}
   catch(e){E.textContent=e.message}
   busy($('#go'),false)};
 /* main */
@@ -216,7 +221,7 @@ function enter(u){me=u;document.body.classList.add('in');setAv($('#hav'),u.name)
   $('#hn').textContent=u.name;$('#hu').textContent='@'+u.username;$('#pn').value=u.name;$('#pb').value=u.bio||'';
   $('#since').textContent='عضو از '+new Date(u.created*1000).toLocaleDateString('fa-IR');
   page(1);show('main');loadSaved();if(window.Perms)Perms.maybe()}
-function page(n){[1,2].forEach(i=>{$('#pg'+i).classList.toggle('on',i===n);$('#n'+i).classList.toggle('on',i===n)})}
+function page(n){[1,2,3,4].forEach(i=>{$('#pg'+i).classList.toggle('on',i===n);$('#n'+i).classList.toggle('on',i===n)})}
 $('#n1').onclick=()=>page(1);$('#n2').onclick=()=>page(2);
 $('#save').onclick=async()=>{const E=$('#perr');E.textContent='';busy($('#save'),true);
   try{const j=await api('/api/me',{name:$('#pn').value,bio:$('#pb').value});enter(j.user);page(2);toast('ذخیره شد')}
@@ -225,12 +230,14 @@ $('#out').onclick=async()=>{try{await api('/api/logout')}catch(e){}store('');me=
 /* saved messages */
 async function loadSaved(){try{saved=(await api('/api/saved',null,'GET')).items}catch(e){}rowInfo()}
 function rowInfo(){const l=saved[saved.length-1];
-  $('#rsub').textContent=l?l.text.replace(/\s+/g,' ').slice(0,50):'پیام‌هات رو اینجا ذخیره کن';
+  if(l&&window.Emoji){Emoji.render($('#rsub'),l.text.replace(/\s+/g,' '))}else $('#rsub').textContent=l?l.text.replace(/\s+/g,' ').slice(0,50):'پیام‌هات رو اینجا ذخیره کن';
   $('#rtime').textContent=l?tm(new Date(l.t*1000)):'';
   }
 $('#rsaved').onclick=()=>{show('saved');if(!CapApp)history.pushState({s:1},'');$('#sq').value='';$('#sbar').classList.remove('on');cancelEdit();renderSaved()};
 function closeSaved(){show('main');page(1);rowInfo()}
 function goBack(){
+  if(window.Emoji&&Emoji.back())return true;
+  if(window.Tabs&&Tabs.back&&Tabs.back())return true;
   if(window.Games&&Games.back())return true;
   if($('#sheet').classList.contains('on')){closeSheet();return true}
   if($('#saved').classList.contains('on')){
@@ -239,23 +246,23 @@ function goBack(){
     closeSaved();return true}
   return false}
 if(CapApp)CapApp.addListener('backButton',()=>{if(!goBack())CapApp.exitApp()});
-window.addEventListener('popstate',()=>{if(!CapApp)goBack()});
+/*nav.js handles back*/
 $('#sback').onclick=()=>{if(CapApp)closeSaved();else history.back()};
 $('#ssb').onclick=()=>{const b=$('#sbar');b.classList.toggle('on');if(b.classList.contains('on'))$('#sq').focus();else{$('#sq').value='';renderSaved()}};
 $('#sq').oninput=()=>renderSaved(false);
 function renderSaved(keep){
   const L=$('#slist'),old=L.scrollTop,q=$('#sq').value.trim();
   const items=q?saved.filter(m=>m.text.includes(q)):saved;
-  $('#ssub').textContent=saved.length?saved.length+' پیام':'خالی';L.innerHTML='';
+  $('#ssub').textContent=saved.length?saved.length.toLocaleString('fa-IR')+' پیام':'خالی';L.innerHTML='';
   if(!items.length){L.innerHTML='<div class="empty">'+ic('bookmark')+'<div>'+(q?'چیزی پیدا نشد':'هر چیزی که می‌خوای بعداً پیداش کنی اینجا ذخیره کن')+'</div></div>';return}
   let day='';
   items.forEach(m=>{const dt=new Date(m.t*1000),dk=dt.toDateString();
     if(dk!==day){day=dk;const s=document.createElement('div');s.className='dsep';s.textContent=dayLabel(dt);L.appendChild(s)}
     const d=document.createElement('div');d.className='msg';
-    const x=document.createElement('div');x.className='tx';x.dir='auto';x.textContent=m.text;
+    const x=document.createElement('div');x.className='tx';x.dir='auto';if(window.Emoji)Emoji.render(x,m.text,'bubble');else x.textContent=m.text;
     const t=document.createElement('div');t.className='mt';t.textContent=(m.edited?'ویرایش‌شده · ':'')+tm(dt);
     d.append(x,t);d.onclick=()=>actions(m);L.appendChild(d)});
-  L.scrollTop=keep===false?old:L.scrollHeight}
+  L.scrollTop=keep===false?old:L.scrollHeight;if(window.Stick)Stick.after(keep)}
 function grow(){const t=$('#ta');t.style.height='auto';t.style.height=Math.min(t.scrollHeight,120)+'px'}
 $('#ta').oninput=grow;
 let sending=false;
@@ -275,7 +282,7 @@ function copyText(t){
   if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).catch(fb);else fb();
   toast('کپی شد')}
 function actions(m){sheet([
-  ['copy','کپی',()=>copyText(m.text)],
+  ['copy','کپی',()=>copyText(window.Emoji?Emoji.plain(m.text):m.text)],
   ['edit','ویرایش',()=>startEdit(m)],
   ['trash','حذف',async()=>{try{await api('/api/saved/'+m.id+'/delete');saved=saved.filter(x=>x.id!==m.id);if(editId===m.id)cancelEdit();renderSaved(false);toast('حذف شد')}catch(e){toast(e.message)}},'dg']])}
 function sheet(items){const S=$('#sheet');S.innerHTML='';

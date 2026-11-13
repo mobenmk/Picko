@@ -101,8 +101,8 @@ window.Games={alive:alive,offline:offline,
  back:function(){
   if($('pwm').classList.contains('on')){closePw();return true}
   if($('perms').classList.contains('on')){finish();return true}
-  if($('ludo').classList.contains('on')){Ludo.stop();show('games');return true}
+  if($('ludo').classList.contains('on')){Ludo.leave();return true}
   if($('games').classList.contains('on')){if(d.body.classList.contains('off'))return false;show('main');page(1);return true}
   return false}};
-window.Perms={maybe:function(){var f=null;try{f=localStorage.getItem('pk_perms')}catch(e){}if(!f&&!d.body.classList.contains('off'))openPerms(1)}};
+window.Perms={maybe:function(){var f=null;try{f=localStorage.getItem('pk_perms')}catch(e){}var fresh=!!window.__newAcct;window.__newAcct=false;if((!f||fresh)&&!d.body.classList.contains('off')){try{localStorage.setItem('pk_perms','1')}catch(e){}openPerms(1)}}};
 })();
